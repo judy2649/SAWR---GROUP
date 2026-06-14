@@ -36,7 +36,9 @@ import {
   Info,
   Check,
   Flame,
-  Scale
+  Scale,
+  Terminal,
+  Globe
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { formatCurrency, cn } from "@/src/lib/utils";
@@ -47,6 +49,28 @@ import luxuryBg from "@/src/assets/images/luxury_housing_bg_1781437455458.jpg";
 // Client-side Dashboard matching Admin-configured entries strictly
 export default function ClientDashboard() {
   const [activeTab, setActiveTab] = useState<string>("overview");
+  
+  // --- Pesapal Integration states ---
+  const [pesapalBaseUrl, setPesapalBaseUrl] = useState<string>("https://cyb.pesapal.com/pesapalv3");
+  const [pesapalKey, setPesapalKey] = useState<string>("2JqeVDwDRH4V/vQc1KRfvzcZbDFmHTzE");
+  const [pesapalSecret, setPesapalSecret] = useState<string>("P3kcwRAOckwPFqdM6DldUWjcdZ4=");
+  const [pesapalToken, setPesapalToken] = useState<string>("");
+  const [pesapalIpnId, setPesapalIpnId] = useState<string>("");
+  const [registeredIpnUrl, setRegisteredIpnUrl] = useState<string>("");
+  const [pesapalOrderUrl, setPesapalOrderUrl] = useState<string>("");
+  const [pesapalOrderTrackingId, setPesapalOrderTrackingId] = useState<string>("");
+  const [pesapalStatusOutput, setPesapalStatusOutput] = useState<any>(null);
+  const [ipnLogsList, setIpnLogsList] = useState<any[]>([]);
+  const [pesapalLogs, setPesapalLogs] = useState<{ type: "info" | "success" | "error"; text: string; timestamp: string }[]>([]);
+  const [isPesapalLoading, setIsPesapalLoading] = useState<boolean>(false);
+  const [selectedBillForPesapal, setSelectedBillForPesapal] = useState<any | null>(null);
+
+  const addPesapalLog = (type: "info" | "success" | "error", text: string) => {
+    setPesapalLogs(prev => [
+      { type, text, timestamp: new Date().toLocaleTimeString() },
+      ...prev
+    ]);
+  };
   
   // Dynamic datasets loaded directly from Admin Storage
   const [properties, setProperties] = useState<Property[]>([]);
@@ -241,6 +265,235 @@ export default function ClientDashboard() {
     alert(`Payment of ${formatCurrency(amount)} successfully authorized via secure escrow channel!`);
     reloadData();
   };
+
+  // --- PESAPAL V3 PROTOCOL ACTIONS ---
+  
+  // 1. Authenticate API request
+  const handlePesapalAuth = async () => {
+    setIsPesapalLoading(true);
+    addPesapalLog("info", "Initiating raw token lookup from backend...");
+    try {
+      const res = await fetch("/api/pesapal/auth", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          baseUrl: pesapalBaseUrl,
+          consumerKey: pesapalKey,
+          consumerSecret: pesapalSecret
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setPesapalToken(data.token);
+        addPesapalLog("success", `Auth Succeeded! Token acquired: ${data.token.slice(0, 15)}...`);
+      } else {
+        addPesapalLog("error", `Auth failed: ${data.error}`);
+      }
+    } catch (err: any) {
+      addPesapalLog("error", `Auth HTTP Call exception: ${err.message}`);
+    } finally {
+      setIsPesapalLoading(false);
+    }
+  };
+
+  // 2. Register IPN URL endpoint
+  const handlePesapalRegisterIpn = async () => {
+    setIsPesapalLoading(true);
+    addPesapalLog("info", "Requesting IPN registration for current hosting domain...");
+    try {
+      const res = await fetch("/api/pesapal/register-ipn", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          baseUrl: pesapalBaseUrl,
+          consumerKey: pesapalKey,
+          consumerSecret: pesapalSecret
+        })
+      });
+      const data = await res.json();
+      if (data.success && data.ipnData) {
+        setPesapalIpnId(data.ipnData.ipn_id);
+        setRegisteredIpnUrl(data.registeredUrl);
+        addPesapalLog("success", `IPN Registry complete! IPN ID: ${data.ipnData.ipn_id}`);
+        addPesapalLog("success", `Receive host set to: ${data.registeredUrl}`);
+      } else {
+        addPesapalLog("error", `Registration failed: ${data.error || JSON.stringify(data)}`);
+      }
+    } catch (err: any) {
+      addPesapalLog("error", `IPN HTTP Call exception: ${err.message}`);
+    } finally {
+      setIsPesapalLoading(false);
+    }
+  };
+
+  // 3. Create Checkout Order & Redirect
+  const handlePesapalSubmitOrder = async (bill: any) => {
+    if (!activeTenant) return;
+    setIsPesapalLoading(true);
+    setSelectedBillForPesapal(bill);
+    addPesapalLog("info", `Starting order sequence for: ${bill.title} | ${bill.amount} UGX`);
+    
+    // Auto-ipn fallback
+    let currentIpnId = pesapalIpnId;
+    if (!currentIpnId) {
+      addPesapalLog("info", "No IPN registration token stored. Setting up live IPN first...");
+      try {
+        const ipnRes = await fetch("/api/pesapal/register-ipn", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            baseUrl: pesapalBaseUrl,
+            consumerKey: pesapalKey,
+            consumerSecret: pesapalSecret
+          })
+        });
+        const ipnData = await ipnRes.json();
+        if (ipnData.success && ipnData.ipnData) {
+          currentIpnId = ipnData.ipnData.ipn_id;
+          setPesapalIpnId(currentIpnId);
+          setRegisteredIpnUrl(ipnData.registeredUrl);
+          addPesapalLog("success", `Dynamic IPN loaded: ${currentIpnId}`);
+        } else {
+          addPesapalLog("error", "Automated IPN register failed. Submitting order directly.");
+        }
+      } catch (e: any) {
+        addPesapalLog("error", `IPN loading fail: ${e.message}`);
+      }
+    }
+
+    const host = window.location.host;
+    const protocol = window.location.protocol;
+    // Callback page returning to same browser
+    const clientCallbackUrl = `${protocol}//${host}/`; 
+
+    const nameParts = activeTenant.name.trim().split(/\s+/);
+    const firstName = nameParts[0] || "Tenant";
+    const lastName = nameParts.slice(1).join(" ") || "Resident";
+    const rawPhone = activeTenant.phone || "0701987654";
+    const cleanPhone = rawPhone.replace(/[^\d+]/g, "");
+
+    const orderPayload = {
+      id: `${bill.id}-${Date.now().toString().slice(-4)}`,
+      amount: bill.amount,
+      currency: "UGX",
+      description: `SAWR Escrow: ${bill.title}`,
+      callback_url: clientCallbackUrl,
+      notification_id: currentIpnId,
+      billing_address: {
+        email_address: activeTenant.email || "resident@sawr.ug",
+        phone_number: cleanPhone,
+        country_code: "UG",
+        first_name: firstName,
+        last_name: lastName,
+        line_1: activeTenant.property,
+        line_2: activeTenant.unit || "N/A",
+        city: "Kampala",
+        state: "Central",
+        postal_code: "256"
+      }
+    };
+
+    try {
+      const res = await fetch("/api/pesapal/submit-order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          baseUrl: pesapalBaseUrl,
+          consumerKey: pesapalKey,
+          consumerSecret: pesapalSecret,
+          order: orderPayload
+        })
+      });
+      const data = await res.json();
+      if (data.success && data.submitData) {
+        const redirectUrl = data.submitData.redirect_url;
+        const trackingId = data.submitData.order_tracking_id || data.submitData.orderTrackingId;
+        
+        setPesapalOrderUrl(redirectUrl);
+        setPesapalOrderTrackingId(trackingId);
+        
+        addPesapalLog("success", "PesaPal checkout session loaded successfully!");
+        addPesapalLog("success", `Redirect URL: ${redirectUrl}`);
+        addPesapalLog("success", `Tracking ID: ${trackingId}`);
+        
+        if (redirectUrl) {
+          window.open(redirectUrl, "_blank");
+          addPesapalLog("info", "Opened secure checkout portal in new browser window.");
+        }
+      } else {
+        addPesapalLog("error", `Order creation failed: ${JSON.stringify(data.error || data)}`);
+      }
+    } catch (err: any) {
+      addPesapalLog("error", `Checkout API call failed: ${err.message}`);
+    } finally {
+      setIsPesapalLoading(false);
+    }
+  };
+
+  // 4. Query status
+  const handlePesapalCheckStatus = async (trackingId: string, associatedBillId: string) => {
+    const tid = trackingId || pesapalOrderTrackingId;
+    if (!tid) {
+      addPesapalLog("error", "No Active Tracking ID specified.");
+      return;
+    }
+    
+    setIsPesapalLoading(true);
+    addPesapalLog("info", `Checking status with Pesapal system for ID: ${tid}...`);
+    try {
+      const queryParams = new URLSearchParams({
+        baseUrl: pesapalBaseUrl,
+        consumerKey: pesapalKey,
+        consumerSecret: pesapalSecret,
+        orderTrackingId: tid
+      });
+      
+      const res = await fetch(`/api/pesapal/transaction-status?${queryParams.toString()}`);
+      const data = await res.json();
+      
+      if (data.success && data.statusData) {
+        setPesapalStatusOutput(data.statusData);
+        // Map status
+        const status = data.statusData.payment_status_description || data.statusData.status || "Unknown";
+        addPesapalLog("success", `Status Payload verified: ${status}`);
+        
+        const isCompleted = ["COMPLETED", "SUCCESS", "PAID", "COMPLETED_CC", "Completed", "200"].includes(status.toUpperCase()) || data.statusData.status === "200";
+        if (isCompleted && associatedBillId) {
+          addPesapalLog("success", "PASSED! Clearing the bill inside local memory ledger.");
+          handlePayBill(associatedBillId, selectedBillForPesapal?.amount || 0);
+          setSelectedBillForPesapal(null);
+        }
+      } else {
+        addPesapalLog("error", `Clearing lookup failed: ${JSON.stringify(data.error || data)}`);
+      }
+    } catch (err: any) {
+      addPesapalLog("error", `Validation handler failed: ${err.message}`);
+    } finally {
+      setIsPesapalLoading(false);
+    }
+  };
+
+  const fetchIpnLogs = async () => {
+    try {
+      const res = await fetch("/api/pesapal/ipn-logs");
+      const data = await res.json();
+      if (data.success && data.logs) {
+        setIpnLogsList(data.logs);
+      }
+    } catch (e) {
+      console.error("Failed to query IPN logs", e);
+    }
+  };
+
+  // Poll IPN logs periodically
+  useEffect(() => {
+    if (activeTab === "payments") {
+      fetchIpnLogs();
+      const interval = setInterval(fetchIpnLogs, 5000);
+      return () => clearInterval(interval);
+    }
+  }, [activeTab]);
+
 
   return (
     <div id="tenant-portal-root" className="min-h-screen bg-slate-50/20 pb-20 md:pb-12 text-slate-800 relative overflow-hidden">
@@ -681,12 +934,22 @@ export default function ClientDashboard() {
                                     Cleared
                                   </span>
                                 ) : (
-                                  <button
-                                    onClick={() => handlePayBill(bill.id, bill.amount)}
-                                    className="bg-sawr-gold hover:bg-gold-500 text-sawr-black font-bold uppercase text-[9px] tracking-wider px-3.5 py-1.5 rounded-xl transition-all shadow-md cursor-pointer hover:scale-[1.03]"
-                                  >
-                                    Pay Now
-                                  </button>
+                                  <div className="flex items-center gap-2">
+                                    <button
+                                      onClick={() => handlePayBill(bill.id, bill.amount)}
+                                      className="bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold uppercase text-[9px] tracking-wider px-2 py-1.5 rounded-xl transition-all border border-slate-300 cursor-pointer"
+                                      title="Mark as paid instantly in local system"
+                                    >
+                                      Mock Pay
+                                    </button>
+                                    <button
+                                      onClick={() => handlePesapalSubmitOrder(bill)}
+                                      className="bg-sawr-gold hover:bg-amber-500 text-sawr-black font-extrabold uppercase text-[9px] tracking-wider px-3 py-1.5 rounded-xl transition-all shadow-md cursor-pointer hover:scale-[1.03] flex items-center gap-1"
+                                    >
+                                      <CreditCard size={10} />
+                                      PesaPal
+                                    </button>
+                                  </div>
                                 )}
                               </div>
                             </div>
@@ -734,19 +997,234 @@ export default function ClientDashboard() {
                     </div>
 
                     <div className="space-y-6">
-                      <div className="bg-white border border-slate-200 rounded-3xl p-6 space-y-4 shadow-sm">
-                        <h4 className="text-xs font-black text-slate-900 uppercase">Escrow Settlement Channels</h4>
-                        <div className="space-y-2 text-xs text-slate-600">
-                          <p>
-                            All payments are securely routed directly into the administrator's unified legal escrow account under Ugandan finance covenants.
-                          </p>
-                          <div className="bg-slate-50 border border-slate-100 hover:border-slate-200/65 rounded-2xl p-4 flex items-center justify-between transition-all duration-200">
-                            <span className="font-bold">M-PESA Gateways</span>
-                            <span className="text-[10px] text-emerald-600 font-mono font-bold bg-emerald-100/60 px-2.5 py-1 rounded-full uppercase tracking-wider">Enabled</span>
+                      {/* PesaPal Interactive Suite */}
+                      <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-5 shadow-xl relative overflow-hidden text-slate-100">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/10 rounded-full blur-2xl pointer-events-none"></div>
+                        
+                        <div className="flex items-center justify-between">
+                          <div className="space-y-0.5">
+                            <span className="text-[8px] tracking-widest uppercase text-amber-500 font-black block">Gateways & Escrow</span>
+                            <h4 className="text-xs font-black text-white uppercase flex items-center gap-1.5">
+                              <Shield size={12} className="text-amber-500" />
+                              PesaPal V3 Live Console
+                            </h4>
                           </div>
-                          <div className="bg-slate-50 border border-slate-100 hover:border-slate-200/65 rounded-2xl p-4 flex items-center justify-between transition-all duration-200">
-                            <span className="font-bold">Digital Credit/Debit Cards</span>
-                            <span className="text-[10px] text-emerald-600 font-mono font-bold bg-emerald-100/60 px-2.5 py-1 rounded-full uppercase tracking-wider">Active</span>
+                          <span className={`text-[8px] font-mono font-black uppercase px-2 py-0.5 rounded ${pesapalBaseUrl.includes("cyb.pesapal") ? "bg-amber-500/20 text-amber-400" : "bg-emerald-500/20 text-emerald-400"}`}>
+                            {pesapalBaseUrl.includes("cyb.pesapal") ? "Sandbox" : "Production"}
+                          </span>
+                        </div>
+
+                        {/* Expandable Credential Drawer */}
+                        <div className="space-y-3 bg-slate-950/60 border border-slate-800/80 rounded-2xl p-4 text-[11px]">
+                          <div className="flex justify-between items-center pb-2 border-b border-slate-800">
+                            <span className="font-bold text-slate-400 uppercase tracking-wider text-[9px]">API Configuration</span>
+                            <span className="text-[9px] font-mono text-slate-500">v3.0 OAuth</span>
+                          </div>
+                          
+                          <div className="space-y-2.5">
+                            <div>
+                              <label className="text-[10px] text-slate-400 font-black uppercase block mb-1">Endpoints Target</label>
+                              <select
+                                value={pesapalBaseUrl}
+                                onChange={(e) => {
+                                  setPesapalBaseUrl(e.target.value);
+                                  addPesapalLog("info", `Target endpoint URL updated to: ${e.target.value}`);
+                                }}
+                                className="w-full bg-slate-901 border border-slate-800 text-white rounded px-2.5 py-1.5 focus:border-amber-500 text-xs outline-none"
+                              >
+                                <option value="https://cyb.pesapal.com/pesapalv3">Sandbox (https://cyb.pesapal.com/pesapalv3)</option>
+                                <option value="https://pay.pesapal.com/v3">Production Live (https://pay.pesapal.com/v3)</option>
+                              </select>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-2">
+                              <div>
+                                <label className="text-[10px] text-slate-400 font-black uppercase block mb-1">Consumer Key</label>
+                                <input
+                                  type="text"
+                                  value={pesapalKey}
+                                  onChange={(e) => setPesapalKey(e.target.value)}
+                                  placeholder="Consumer Key"
+                                  className="w-full bg-slate-901 border border-slate-800 text-white rounded px-2 py-1 text-xs outline-none focus:border-amber-500 text-ellipsis font-mono"
+                                />
+                              </div>
+                              <div>
+                                <label className="text-[10px] text-slate-400 font-black uppercase block mb-1">Consumer Secret</label>
+                                <input
+                                  type="password"
+                                  value={pesapalSecret}
+                                  onChange={(e) => setPesapalSecret(e.target.value)}
+                                  placeholder="Consumer Secret"
+                                  className="w-full bg-slate-901 border border-slate-800 text-white rounded px-2 py-1 text-xs outline-none focus:border-amber-500 text-ellipsis"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* STAGES IMPLEMENTATION */}
+                        <div className="space-y-3.5">
+                          {/* 1. AUTHENTICATE */}
+                          <div className="bg-slate-950/40 border border-slate-800 rounded-2xl p-3.5 flex items-center justify-between gap-3 text-[11px]">
+                            <div className="space-y-0.5 flex-grow">
+                              <span className="text-[8px] text-slate-500 font-black uppercase block">Phase 1</span>
+                              <span className="font-bold text-slate-200 block">OAuth Handshake</span>
+                              {pesapalToken ? (
+                                <p className="text-[10px] text-emerald-400 font-mono truncate w-32">Token: {pesapalToken.substring(0,10)}...</p>
+                              ) : (
+                                <p className="text-[10px] text-slate-500">Unauthenticated</p>
+                              )}
+                            </div>
+                            <button
+                              onClick={handlePesapalAuth}
+                              disabled={isPesapalLoading}
+                              className="bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-200 px-3 py-1.5 rounded-xl font-bold uppercase text-[9px] min-w-[90px] text-center shrink-0 cursor-pointer"
+                            >
+                              Verify Keys
+                            </button>
+                          </div>
+
+                          {/* 2. IPN REGISTRATION */}
+                          <div className="bg-slate-950/40 border border-slate-800 rounded-2xl p-3.5 flex items-center justify-between gap-3 text-[11px]">
+                            <div className="space-y-0.5 flex-grow">
+                              <span className="text-[8px] text-slate-500 font-black uppercase block">Phase 2</span>
+                              <span className="font-bold text-slate-200 block">IPN URL Listener</span>
+                              {pesapalIpnId ? (
+                                <p className="text-[10px] text-emerald-400 font-mono truncate w-32">ID: {pesapalIpnId}</p>
+                              ) : (
+                                <p className="text-[10px] text-slate-500">IPN offline</p>
+                              )}
+                            </div>
+                            <button
+                              onClick={handlePesapalRegisterIpn}
+                              disabled={isPesapalLoading}
+                              className="bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-200 px-3 py-1.5 rounded-xl font-bold uppercase text-[9px] min-w-[90px] text-center shrink-0 cursor-pointer"
+                            >
+                              Register IPN
+                            </button>
+                          </div>
+
+                          {/* 3. ACTIVE ORDER & REDIRECT */}
+                          <div className="bg-slate-950/40 border border-slate-800 rounded-2xl p-3.5 space-y-3 text-[11px]">
+                            <div className="flex justify-between items-start">
+                              <div className="space-y-0.5">
+                                <span className="text-[8px] text-slate-500 font-black uppercase block">Phase 3 & 4</span>
+                                <span className="font-bold text-slate-200">Submit Checkout Order</span>
+                              </div>
+                              {pesapalOrderTrackingId ? (
+                                <span className="text-[8px] bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded uppercase font-black tracking-wider">Active</span>
+                              ) : (
+                                <span className="text-[8px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded uppercase font-bold tracking-wider">Empty</span>
+                              )}
+                            </div>
+
+                            {selectedBillForPesapal && (
+                              <div className="bg-slate-950/80 rounded-xl p-2.5 border border-slate-850 space-y-1">
+                                <div className="flex justify-between text-[11px]">
+                                  <span className="text-slate-400 line-clamp-1">{selectedBillForPesapal.title}</span>
+                                  <span className="font-mono text-white text-right shrink-0">{selectedBillForPesapal.amount} UGX</span>
+                                </div>
+                                {pesapalOrderTrackingId && (
+                                  <p className="text-[9px] text-slate-500 font-mono select-all shrink-0 uppercase truncate">Tracking ID: {pesapalOrderTrackingId}</p>
+                                )}
+                              </div>
+                            )}
+
+                            {pesapalOrderUrl && (
+                              <a
+                                href={pesapalOrderUrl}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-black text-center block py-2 rounded-xl text-[10px] tracking-wider uppercase transition-all shadow-md active:scale-[0.98]"
+                              >
+                                Launch Secure Checkout Window
+                              </a>
+                            )}
+
+                            {pesapalOrderTrackingId && (
+                              <button
+                                onClick={() => handlePesapalCheckStatus(pesapalOrderTrackingId, selectedBillForPesapal?.id)}
+                                disabled={isPesapalLoading}
+                                className="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 font-black text-center block py-1.5 rounded-xl text-[9px] tracking-wider uppercase border border-slate-700 hover:border-slate-600 duration-200 cursor-pointer"
+                              >
+                                {isPesapalLoading ? "Consulting API..." : "Verify Payment & Reconcile"}
+                              </button>
+                            )}
+
+                            {!pesapalOrderTrackingId && (
+                              <p className="text-[10px] text-slate-500 text-center leading-relaxed">
+                                Click **"PesaPal"** on any outstanding invoice in the adjacent grid to automatically build a real-time transaction session.
+                              </p>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* REAL-TIME SYSTEM LOGS TERMINAL */}
+                        <div className="space-y-1.5">
+                          <div className="flex justify-between items-center text-[10px]">
+                            <span className="text-[9px] text-slate-400 uppercase tracking-wider font-extrabold flex items-center gap-1">
+                              <Terminal size={10} className="text-amber-500" />
+                              Execution Pipeline Trace
+                            </span>
+                            <button
+                              onClick={() => setPesapalLogs([])}
+                              className="text-[9px] text-slate-500 hover:text-white cursor-pointer"
+                            >
+                              Clear Logs
+                            </button>
+                          </div>
+                          
+                          <div className="bg-slate-950 border border-slate-800 rounded-2xl p-3 h-32 overflow-y-auto font-mono text-[9px] space-y-1.5 scrollbar-thin">
+                            {pesapalLogs.length === 0 ? (
+                              <span className="text-slate-600">Awaiting user action...</span>
+                            ) : (
+                              pesapalLogs.map((log, idx) => (
+                                <div key={idx} className="flex gap-2 leading-relaxed">
+                                  <span className="text-slate-600 text-[8px] mt-0.5">{log.timestamp}</span>
+                                  <span className={log.type === "success" ? "text-emerald-400" : log.type === "error" ? "text-rose-500 font-bold" : "text-slate-300"}>
+                                    {log.text}
+                                  </span>
+                                </div>
+                              ))
+                            )}
+                          </div>
+                        </div>
+
+                        {/* LIVE IPN CALLBACK MONITOR */}
+                        <div className="space-y-1.5 pt-1 border-t border-slate-800">
+                          <div className="flex justify-between items-center text-[10px]">
+                            <span className="text-[9px] text-slate-400 uppercase tracking-wider font-extrabold flex items-center gap-1.5">
+                              <Globe size={11} className="text-emerald-500 animate-pulse" />
+                              IPN Callback Listener
+                            </span>
+                            <span className="font-mono text-[8px] text-slate-500">Polls 5s</span>
+                          </div>
+
+                          <div className="bg-slate-950 border border-slate-800 rounded-2xl p-3 max-h-36 overflow-y-auto font-mono text-[9px] space-y-2">
+                            {ipnLogsList.length === 0 ? (
+                              <div className="text-slate-600 text-center py-2 text-[10px]">
+                                <span className="inline-block w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping mr-1.5"></span>
+                                Live webhook logs from Pesapal...
+                              </div>
+                            ) : (
+                              ipnLogsList.map((log, idx) => (
+                                <div key={idx} className="border-b border-slate-900 pb-1.5 last:border-0 last:pb-0 font-mono text-[8px]">
+                                  <div className="flex justify-between text-slate-500 gap-2">
+                                    <span>Webhook Incoming</span>
+                                    <span>{new Date(log.timestamp).toLocaleTimeString()}</span>
+                                  </div>
+                                  <div className="text-emerald-400 mt-1">
+                                    Ref: {log.query?.OrderMerchantReference || log.body?.OrderMerchantReference || "N/A"}
+                                  </div>
+                                  <div className="text-slate-300 truncate">
+                                    Tracking ID: {log.query?.OrderTrackingId || log.body?.OrderTrackingId || "N/A"}
+                                  </div>
+                                  <div className="text-slate-500 text-[7px] truncate mt-0.5">
+                                    Query: {JSON.stringify(log.query)}
+                                  </div>
+                                </div>
+                              ))
+                            )}
                           </div>
                         </div>
                       </div>

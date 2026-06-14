@@ -1,0 +1,119 @@
+{
+  "entities": {
+    "Property": {
+      "title": "Property",
+      "description": "A real estate property containing multiple units.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "address": { "type": "string" },
+        "type": { "type": "string", "enum": ["Residential", "Commercial", "Industrial"] },
+        "imageUrl": { "type": "string" },
+        "ownerId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "address", "type", "ownerId"]
+    },
+    "Unit": {
+      "title": "Unit",
+      "description": "A specific rental unit within a property.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "propertyId": { "type": "string" },
+        "unitNumber": { "type": "string" },
+        "rentAmount": { "type": "number" },
+        "status": { "type": "string", "enum": ["Vacant", "Occupied", "Maintenance"] },
+        "tenantId": { "type": "string" }
+      },
+      "required": ["propertyId", "unitNumber", "rentAmount", "status"]
+    },
+    "Tenant": {
+      "title": "Tenant",
+      "description": "An individual or entity renting a unit.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "phone": { "type": "string" },
+        "onboardingDate": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "email"]
+    },
+    "Lease": {
+      "title": "Lease",
+      "description": "The rental agreement between property and tenant.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "tenantId": { "type": "string" },
+        "unitId": { "type": "string" },
+        "startDate": { "type": "string", "format": "date-time" },
+        "endDate": { "type": "string", "format": "date-time" },
+        "rentAmount": { "type": "number" },
+        "depositAmount": { "type": "number" },
+        "status": { "type": "string", "enum": ["Active", "Terminated", "Expired"] }
+      },
+      "required": ["tenantId", "unitId", "startDate", "rentAmount", "status"]
+    },
+    "Transaction": {
+      "title": "Transaction",
+      "description": "Financial records of payments and expenses.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "amount": { "type": "number" },
+        "type": { "type": "string", "enum": ["Rent", "Deposit", "Maintenance", "Utility", "Other"] },
+        "category": { "type": "string", "enum": ["Income", "Expense"] },
+        "date": { "type": "string", "format": "date-time" },
+        "unitId": { "type": "string" },
+        "description": { "type": "string" }
+      },
+      "required": ["amount", "type", "category", "date"]
+    },
+    "Maintenance": {
+      "title": "Maintenance",
+      "description": "Tracking maintenance tasks and service requests.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "unitId": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "status": { "type": "string", "enum": ["Pending", "In Progress", "Completed"] },
+        "priority": { "type": "string", "enum": ["Low", "Medium", "High", "Emergency"] },
+        "cost": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "status", "priority", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/properties/{propertyId}": {
+      "schema": "Property",
+      "description": "Real estate properties."
+    },
+    "/properties/{propertyId}/units/{unitId}": {
+      "schema": "Unit",
+      "description": "Units within a property."
+    },
+    "/tenants/{tenantId}": {
+      "schema": "Tenant",
+      "description": "Tenant demographic information."
+    },
+    "/leases/{leaseId}": {
+      "schema": "Lease",
+      "description": "Rental agreements."
+    },
+    "/transactions/{transactionId}": {
+      "schema": "Transaction",
+      "description": "Financial ledger."
+    },
+    "/maintenance/{maintenanceId}": {
+      "schema": "Maintenance",
+      "description": "Maintenance tasks."
+    }
+  }
+}

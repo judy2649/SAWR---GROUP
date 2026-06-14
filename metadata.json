@@ -1,0 +1,6 @@
+{
+  "name": "SAWR Group",
+  "description": "Professional real estate and property management platform for SAWR Group Company Ltd.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

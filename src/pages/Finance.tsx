@@ -91,8 +91,8 @@ export default function Finance() {
     <div className="p-8 space-y-8">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-3xl font-display font-bold text-slate-900">Financial Center</h2>
-          <p className="text-slate-500 mt-1">Monitor cashflow, expenses, and invoices.</p>
+          <h2 className="text-3xl font-display font-bold text-slate-900 uppercase tracking-widest">SAWR Finances</h2>
+          <p className="text-sawr-gold font-bold tracking-[0.2em] text-[10px] sm:text-xs mt-2 uppercase">Real Estate | Investments</p>
         </div>
         <div className="flex items-center gap-3">
           <button className="flex items-center gap-2 bg-white hover:bg-slate-50 px-4 py-2 rounded-xl border border-slate-200 transition-all font-bold text-slate-700 shadow-sm">

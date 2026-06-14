@@ -82,8 +82,8 @@ export default function Dashboard() {
       <div className="max-w-[1600px] mx-auto space-y-8">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-3xl font-display font-bold text-slate-900">Corporate Dashboard</h2>
-            <p className="text-slate-500 mt-1">Welcome back, here's what's happening today based on active assets.</p>
+            <h2 className="text-3xl font-display font-bold text-slate-900 uppercase tracking-widest">SAWR Group Operations</h2>
+            <p className="text-sawr-gold font-bold tracking-[0.2em] text-[10px] sm:text-xs mt-2 uppercase">Real Estate | Development | Investment</p>
           </div>
         </div>
 

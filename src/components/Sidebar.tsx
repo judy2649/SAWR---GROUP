@@ -12,7 +12,8 @@ import {
   BarChart3,
   ScrollText,
   Key,
-  BadgeCent
+  BadgeCent,
+  X
 } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { cn } from "@/src/lib/utils";
@@ -30,11 +31,14 @@ const menuItems = [
   { icon: BarChart3, label: "Reports", path: "/reports" },
 ];
 
-export function Sidebar() {
+export function Sidebar({ isOpen, setIsOpen }: { isOpen: boolean, setIsOpen: (val: boolean) => void }) {
   return (
-    <aside className="w-64 border-r border-slate-200 flex flex-col bg-white h-screen sticky top-0 md:relative z-40">
-      <div className="p-6">
-        <div className="flex flex-col gap-4">
+    <aside className={cn(
+      "fixed inset-y-0 left-0 z-50 w-64 border-r border-slate-200 bg-white shadow-2xl lg:shadow-none flex flex-col transition-transform duration-300 lg:relative lg:translate-x-0",
+      isOpen ? "translate-x-0" : "-translate-x-full"
+    )}>
+      <div className="p-6 flex items-center justify-between">
+        <div className="flex flex-col gap-4 w-full">
           <img 
             src="/src/assets/images/sawr_logo_1781434320923.jpg" 
             alt="SAWR GROUP" 
@@ -42,13 +46,20 @@ export function Sidebar() {
             referrerPolicy="no-referrer"
           />
         </div>
+        <button 
+          onClick={() => setIsOpen(false)}
+          className="lg:hidden p-2 text-slate-400 hover:text-sawr-gold hover:bg-slate-50 rounded-lg absolute top-4 right-4"
+        >
+          <X size={20} />
+        </button>
       </div>
 
-      <nav className="flex-1 px-4 py-4 space-y-2">
+      <nav className="flex-1 px-4 py-4 space-y-2 overflow-y-auto">
         {menuItems.map((item) => (
           <NavLink
             key={item.path}
             to={item.path}
+            onClick={() => setIsOpen(false)}
             className={({ isActive }) => cn(
               "flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 group relative",
               isActive 
@@ -59,7 +70,7 @@ export function Sidebar() {
             {({ isActive }) => (
               <>
                 <item.icon size={20} className={cn(isActive ? "text-sawr-black" : "text-slate-400 group-hover:text-sawr-blue")} />
-                <span className="font-medium">{item.label}</span>
+                <span className="font-medium text-sm lg:text-base">{item.label}</span>
                 {isActive && (
                   <motion.div 
                     layoutId="activeTab"
@@ -75,9 +86,15 @@ export function Sidebar() {
       </nav>
 
       <div className="p-4 mt-auto border-t border-slate-100">
-        <button className="flex items-center gap-3 w-full px-4 py-3 text-slate-500 hover:text-sawr-orange hover:bg-slate-50 rounded-xl transition-all">
+        <button 
+          onClick={() => {
+            localStorage.setItem("sawr_auth", "false");
+            window.location.reload();
+          }}
+          className="flex items-center gap-3 w-full px-4 py-3 text-slate-500 hover:text-sawr-orange hover:bg-slate-50 rounded-xl transition-all"
+        >
           <LogOut size={20} />
-          <span className="font-medium">Logout</span>
+          <span className="font-medium text-sm lg:text-base">Logout</span>
         </button>
       </div>
     </aside>

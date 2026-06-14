@@ -14,6 +14,7 @@ import Vacancy from "@/src/pages/Vacancy";
 import Expenses from "@/src/pages/Expenses";
 import Auth from "@/src/pages/Auth";
 import MyBookings from "@/src/pages/MyBookings";
+import luxuryBg from "@/src/assets/images/luxury_housing_bg_1781437455458.jpg";
 
 export default function App() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -40,15 +41,15 @@ export default function App() {
 
   return (
     <div className="flex bg-slate-50 min-h-screen text-slate-900 font-sans selection:bg-sawr-gold/20 overflow-hidden relative">
-      {/* Premium System Background Layer with Ambient Gradient Mask */}
-      <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden opacity-10">
+      {/* Premium Luxury SAWR Brand Background Layer with Ambient Gradient Mask */}
+      <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden opacity-35">
         <img 
-          src="/src/assets/images/system_background_1781434655744.jpg" 
+          src={luxuryBg} 
           alt="System Background" 
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover select-none"
           referrerPolicy="no-referrer"
         />
-        <div className="absolute inset-0 bg-gradient-to-tr from-slate-50 via-slate-50/50 to-transparent"></div>
+        <div className="absolute inset-0 bg-gradient-to-tr from-slate-50 via-slate-50/40 to-transparent"></div>
       </div>
 
       <Sidebar isOpen={isMobileMenuOpen} setIsOpen={setIsMobileMenuOpen} />

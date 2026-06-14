@@ -41,6 +41,8 @@ import {
 import { motion, AnimatePresence } from "motion/react";
 import { formatCurrency, cn } from "@/src/lib/utils";
 import { StorageEngine, Property, Tenant, Lease, MaintenanceTask, Expense, CommLog } from "@/src/lib/storage";
+import sawrLogo from "@/src/assets/images/sawr_logo_1781434320923.jpg";
+import luxuryBg from "@/src/assets/images/luxury_housing_bg_1781437455458.jpg";
 
 // Client-side Dashboard matching Admin-configured entries strictly
 export default function ClientDashboard() {
@@ -245,7 +247,7 @@ export default function ClientDashboard() {
       {/* Strategic SAWR Brand/Luxury Housing Wallpaper */}
       <div className="absolute inset-0 pointer-events-none z-0">
         <img 
-          src="/src/assets/images/luxury_housing_bg_1781437455458.jpg" 
+          src={luxuryBg} 
           alt="SAWR Operations Wallpaper" 
           className="w-full h-full object-cover opacity-35 select-none transition-opacity duration-300"
           referrerPolicy="no-referrer"
@@ -294,7 +296,7 @@ export default function ClientDashboard() {
         <div id="client-header-pnl" className="bg-white border border-slate-200 rounded-3xl p-6 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-sm">
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5">
             <img 
-              src="/src/assets/images/sawr_logo_1781434320923.jpg" 
+              src={sawrLogo} 
               alt="SAWR GROUP" 
               className="h-16 w-auto object-contain shrink-0 rounded-xl border border-slate-100 p-1 bg-slate-50"
               referrerPolicy="no-referrer"
@@ -430,7 +432,7 @@ export default function ClientDashboard() {
                     <div className="lg:col-span-2 space-y-6">
                       
                       {/* Active property card */}
-                      <div className="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm">
+                      <div className="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300">
                         <div className="h-44 md:h-56 relative bg-slate-900">
                           {activeProperty?.image ? (
                             <img src={activeProperty.image} alt="Property" className="w-full h-full object-cover opacity-80" />
@@ -529,16 +531,16 @@ export default function ClientDashboard() {
                       </div>
 
                       {/* Small usage metrics preview */}
-                      <div className="bg-white border border-slate-200 rounded-3xl p-5 space-y-4 shadow-sm">
+                      <div className="bg-white border border-slate-200 rounded-3xl p-6 space-y-4 shadow-sm hover:shadow-md transition-shadow duration-300">
                         <h4 className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Today's Smart Utilities Meter</h4>
                         <div className="grid grid-cols-2 gap-3 text-center">
-                          <div className="bg-red-50/50 border border-red-100 rounded-2xl p-3">
-                            <Flame size={14} className="text-red-500 mx-auto mb-1" />
+                          <div className="bg-red-50/50 hover:bg-red-50/80 border border-red-100 hover:border-red-200 rounded-2xl p-4 transition-all duration-200 group cursor-pointer">
+                            <Flame size={14} className="text-red-500 mx-auto mb-1 group-hover:scale-110 transition-transform duration-200" />
                             <div className="text-[8px] text-slate-400 uppercase font-bold">Electricity</div>
                             <div className="text-sm font-bold text-slate-850 font-mono">11.8 kWh</div>
                           </div>
-                          <div className="bg-blue-50/50 border border-blue-100 rounded-2xl p-3">
-                            <Activity size={14} className="text-blue-500 mx-auto mb-1" />
+                          <div className="bg-blue-50/50 hover:bg-blue-50/80 border border-blue-100 hover:border-blue-200 rounded-2xl p-4 transition-all duration-200 group cursor-pointer">
+                            <Activity size={14} className="text-blue-500 mx-auto mb-1 group-hover:scale-110 transition-transform duration-200" />
                             <div className="text-[8px] text-slate-400 uppercase font-bold">Water</div>
                             <div className="text-sm font-bold text-slate-850 font-mono">0.32 m³</div>
                           </div>
@@ -602,7 +604,7 @@ export default function ClientDashboard() {
                           </div>
                         </div>
 
-                        <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+                        <div className="bg-slate-50 border border-slate-100 hover:border-slate-200 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4 transition-all duration-200">
                           <div className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded-xl bg-slate-900 flex items-center justify-center text-sawr-gold">
                               <FileText size={18} />
@@ -625,7 +627,7 @@ export default function ClientDashboard() {
                     </div>
 
                     <div className="space-y-6">
-                      <div className="bg-gradient-to-br from-emerald-50 to-emerald-100/50 border border-emerald-100 rounded-3xl p-6 space-y-3.5 shadow-sm text-left">
+                      <div className="bg-gradient-to-br from-emerald-50 to-emerald-100/50 border border-emerald-100 rounded-3xl p-6 space-y-3.5 shadow-sm text-left hover:shadow-md transition-all duration-300">
                         <Shield className="text-emerald-600" size={24} />
                         <h4 className="text-xs font-bold text-slate-900 uppercase">SAWR Legal Shield Active</h4>
                         <p className="text-[11px] text-slate-600 leading-relaxed">
@@ -653,7 +655,7 @@ export default function ClientDashboard() {
                         
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           {activeBills.map((bill) => (
-                            <div key={bill.id} className="bg-white border border-slate-200 rounded-2xl p-5 space-y-4 shadow-sm flex flex-col justify-between">
+                            <div key={bill.id} className="bg-white border border-slate-200 rounded-3xl p-6 space-y-4 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 flex flex-col justify-between">
                               <div className="space-y-1">
                                 <div className="flex justify-between items-start">
                                   <span className="text-[8px] bg-slate-900 text-sawr-gold font-bold uppercase tracking-widest px-2 py-0.5 rounded">
@@ -738,13 +740,13 @@ export default function ClientDashboard() {
                           <p>
                             All payments are securely routed directly into the administrator's unified legal escrow account under Ugandan finance covenants.
                           </p>
-                          <div className="bg-slate-50 border border-slate-100 p-3 rounded-2xl flex items-center justify-between">
+                          <div className="bg-slate-50 border border-slate-100 hover:border-slate-200/65 rounded-2xl p-4 flex items-center justify-between transition-all duration-200">
                             <span className="font-bold">M-PESA Gateways</span>
-                            <span className="text-[10px] text-emerald-600 font-mono font-bold">Enabled</span>
+                            <span className="text-[10px] text-emerald-600 font-mono font-bold bg-emerald-100/60 px-2.5 py-1 rounded-full uppercase tracking-wider">Enabled</span>
                           </div>
-                          <div className="bg-slate-50 border border-slate-100 p-3 rounded-2xl flex items-center justify-between">
+                          <div className="bg-slate-50 border border-slate-100 hover:border-slate-200/65 rounded-2xl p-4 flex items-center justify-between transition-all duration-200">
                             <span className="font-bold">Digital Credit/Debit Cards</span>
-                            <span className="text-[10px] text-emerald-600 font-mono font-bold">Active</span>
+                            <span className="text-[10px] text-emerald-600 font-mono font-bold bg-emerald-100/60 px-2.5 py-1 rounded-full uppercase tracking-wider">Active</span>
                           </div>
                         </div>
                       </div>
@@ -764,7 +766,7 @@ export default function ClientDashboard() {
                     <div className="lg:col-span-2 space-y-6">
                       
                       {/* File New Request */}
-                      <div className="bg-white border border-slate-200 rounded-3xl p-6 space-y-5 shadow-sm text-left">
+                      <div className="bg-white border border-slate-200 rounded-3xl p-6 space-y-5 shadow-sm text-left hover:shadow-md transition-all duration-300">
                         <div className="space-y-1">
                           <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider">
                             Submit Repair Request to Admin List
@@ -854,7 +856,7 @@ export default function ClientDashboard() {
 
                         <div className="space-y-2.5">
                           {activeTasks.map((task) => (
-                            <div key={task.id} className="bg-white border border-slate-200 rounded-2xl p-4 flex items-center justify-between text-xs shadow-sm">
+                            <div key={task.id} className="bg-white border border-slate-200 rounded-3xl p-5 flex items-center justify-between text-xs shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300">
                               <div className="space-y-1">
                                 <span className={cn(
                                   "text-[8px] font-mono font-extrabold uppercase px-2 py-0.5 rounded",
@@ -889,12 +891,12 @@ export default function ClientDashboard() {
                     </div>
 
                     <div className="space-y-6">
-                      <div className="bg-slate-50 border border-slate-200 rounded-3xl p-6 space-y-3 text-left">
+                      <div className="bg-slate-50 border border-slate-200 rounded-3xl p-6 space-y-3 text-left hover:shadow-md transition-shadow duration-300">
                         <h4 className="text-xs font-black text-slate-900 uppercase">Emergency Support</h4>
                         <p className="text-[11px] text-slate-600 leading-relaxed">
                           For hazardous emergencies (gas leakage, elevator entrapments, extreme structural hazard), call our primary regional emergency engineering desk at:
                         </p>
-                        <a href="tel:+256701987654" className="block text-center font-mono font-black border border-red-200 text-red-600 bg-red-50 p-3 rounded-2xl hover:bg-red-100/50 transition-colors">
+                        <a href="tel:+256701987654" className="block text-center font-mono font-black border border-red-300 text-red-600 bg-red-50 p-4 rounded-2xl hover:bg-red-100 hover:text-red-700 hover:scale-[1.01] transition-all duration-200">
                           +256 701 987 654
                         </a>
                       </div>
@@ -914,7 +916,7 @@ export default function ClientDashboard() {
                     <div className="lg:col-span-2 space-y-6">
                       
                       {/* Live meter stats details */}
-                      <div className="bg-white border border-slate-200 rounded-3xl p-6 space-y-6 shadow-sm">
+                      <div className="bg-white border border-slate-200 rounded-3xl p-6 space-y-6 shadow-sm hover:shadow-md transition-shadow duration-300">
                         <div className="flex justify-between items-center pb-4 border-b border-slate-100">
                           <div>
                             <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider">Smart Meter Analytics</h3>
@@ -985,7 +987,7 @@ export default function ClientDashboard() {
                     </div>
 
                     <div className="space-y-6">
-                      <div className="bg-white border border-slate-200 rounded-3xl p-6 space-y-3.5 shadow-sm text-left">
+                      <div className="bg-white border border-slate-200 rounded-3xl p-6 space-y-3.5 shadow-sm text-left hover:shadow-md transition-shadow duration-300">
                         <h4 className="text-xs font-black text-slate-900 uppercase">Tariff Limits & Rules</h4>
                         <p className="text-[11px] text-slate-600 leading-relaxed">
                           Rates are configured by the Uganda Water & Electricity Board regulatory standards. All unit usage is logged daily by local microchip encoders.
@@ -1010,7 +1012,7 @@ export default function ClientDashboard() {
                   >
                     {/* Live Support Chat Workspace */}
                     <div className="lg:col-span-2 space-y-6">
-                      <div className="bg-white border border-slate-200 rounded-3xl p-6 flex flex-col h-[480px] shadow-sm">
+                      <div className="bg-white border border-slate-200 rounded-3xl p-6 flex flex-col h-[480px] shadow-sm hover:shadow-md transition-shadow duration-300">
                         <div className="flex justify-between items-center pb-3 border-b border-slate-50">
                           <div className="flex items-center gap-2">
                             <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
@@ -1106,7 +1108,7 @@ export default function ClientDashboard() {
                     </div>
 
                     <div className="space-y-6">
-                      <div className="bg-white border border-slate-200 rounded-3xl p-5 space-y-3.5 shadow-sm text-left">
+                      <div className="bg-white border border-slate-200 rounded-3xl p-6 space-y-3.5 shadow-sm text-left hover:shadow-md transition-shadow duration-300">
                         <h4 className="text-xs font-black text-slate-900 uppercase">Policy Notice Desk</h4>
                         <p className="text-[11px] text-slate-600 leading-relaxed">
                           Messages displayed inside the broadcast alert log are officially compiled and issued directly by the assigned real estate manager. Keep notifications monitored to preserve tenancy benefits.

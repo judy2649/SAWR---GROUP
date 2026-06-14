@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { formatCurrency, cn } from "@/src/lib/utils";
+import sawrLogo from "@/src/assets/images/sawr_logo_1781434320923.jpg";
 
 interface Booking {
   id: string;
@@ -229,7 +230,7 @@ export default function MyBookings() {
                   
                   <div className="space-y-2">
                     <img 
-                      src="/src/assets/images/sawr_logo_1781434320923.jpg" 
+                      src={sawrLogo} 
                       alt="SAWR GROUP" 
                       className="h-10 w-auto object-contain mx-auto"
                     />

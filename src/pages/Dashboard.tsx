@@ -26,6 +26,8 @@ import { motion } from "motion/react";
 import { formatCurrency, cn } from "@/src/lib/utils";
 import { StorageEngine, Property, Tenant, Lease, VacancyUnit } from "@/src/lib/storage";
 import ClientDashboard from "@/src/components/ClientDashboard";
+import sawrLogo from "@/src/assets/images/sawr_logo_1781434320923.jpg";
+import luxuryBg from "@/src/assets/images/luxury_housing_bg_1781437455458.jpg";
 
 export default function Dashboard() {
   const role = localStorage.getItem("sawr_role") || "client";
@@ -89,7 +91,7 @@ export default function Dashboard() {
       {/* Strategic SAWR Brand/Luxury Housing Wallpaper */}
       <div className="absolute inset-0 pointer-events-none z-0">
         <img 
-          src="/src/assets/images/luxury_housing_bg_1781437455458.jpg" 
+          src={luxuryBg} 
           alt="SAWR Operations Wallpaper" 
           className="w-full h-full object-cover opacity-35 select-none transition-opacity duration-300"
           referrerPolicy="no-referrer"
@@ -101,7 +103,7 @@ export default function Dashboard() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white border border-slate-200 p-6 rounded-3xl shadow-sm">
           <div className="flex items-center gap-4">
             <img 
-              src="/src/assets/images/sawr_logo_1781434320923.jpg" 
+              src={sawrLogo} 
               alt="SAWR GROUP" 
               className="h-16 w-auto object-contain shrink-0"
               referrerPolicy="no-referrer"

@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { User, Lock, Mail, ArrowRight, ShieldCheck, Phone } from "lucide-react";
 import { cn } from "@/src/lib/utils";
+import sawrLogo from "@/src/assets/images/sawr_logo_1781434320923.jpg";
+import luxuryBg from "@/src/assets/images/luxury_housing_bg_1781437455458.jpg";
 
 interface AuthProps {
   onLogin: () => void;
@@ -41,7 +43,7 @@ export default function Auth({ onLogin }: AuthProps) {
       {/* Background Image */}
       <div 
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: `url('/src/assets/images/luxury_housing_bg_1781437455458.jpg')` }}
+        style={{ backgroundImage: `url(${luxuryBg})` }}
       />
       
       {/* Dark Gradient Overlay for readability */}
@@ -57,7 +59,7 @@ export default function Auth({ onLogin }: AuthProps) {
           <div className="bg-white p-3 rounded-2xl inline-block mb-4 shadow-xl relative">
             <div className="absolute inset-0 bg-sawr-gold mix-blend-overlay opacity-20 rounded-2xl"></div>
             <img 
-              src="/src/assets/images/sawr_logo_1781434320923.jpg" 
+              src={sawrLogo} 
               alt="SAWR GROUP" 
               className="h-12 w-auto object-contain relative z-10"
             />

@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { cn } from "@/src/lib/utils";
+import sawrLogo from "@/src/assets/images/sawr_logo_1781434320923.jpg";
 
 const adminMenuItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/" },
@@ -49,7 +50,7 @@ export function Sidebar({ isOpen, setIsOpen }: { isOpen: boolean, setIsOpen: (va
       <div className="p-6 flex items-center justify-between">
         <div className="flex flex-col gap-4 w-full">
           <img 
-            src="/src/assets/images/sawr_logo_1781434320923.jpg" 
+            src={sawrLogo} 
             alt="SAWR GROUP" 
             className="w-full h-auto object-contain"
             referrerPolicy="no-referrer"

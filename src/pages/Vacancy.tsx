@@ -122,7 +122,7 @@ export default function Vacancy() {
           { label: "Total Vacant Units", value: vacancies.length.toString(), sub: "Available now", icon: Home, color: "blue" },
           { label: "Avg. Days on Market", value: `${avgDays} days`, sub: "Listing age metric", icon: Clock, color: "gold" },
           { label: "Active Leads", value: totalLeads.toString(), sub: "Leasing pipeline", icon: TrendingUp, color: "emerald" },
-          { label: "Rev. Loss (Est.)", value: `KSh ${(totalRevLoss/1000).toFixed(0)}k`, sub: "Monthly rent impact", icon: ExternalLink, color: "orange" },
+          { label: "Rev. Loss (Est.)", value: `USh ${(totalRevLoss/1000).toFixed(0)}k`, sub: "Monthly rent impact", icon: ExternalLink, color: "orange" },
         ].map((stat, i) => (
           <div key={i} className="glass p-6 rounded-2xl bg-white shadow-sm border border-slate-200">
             <div className={cn(
@@ -233,7 +233,7 @@ export default function Vacancy() {
                          )}>{unit.daysOnMarket} days</span>
                       </div>
                     </td>
-                    <td className="px-6 py-4 font-bold text-slate-900 text-sm">KSh {unit.marketRent.toLocaleString()}</td>
+                    <td className="px-6 py-4 font-bold text-slate-900 text-sm">USh {unit.marketRent.toLocaleString()}</td>
                     <td className="px-6 py-4 text-sm font-bold text-slate-700">{unit.leads} prospects</td>
                     <td className="px-6 py-4">
                       <span className={cn(
@@ -337,7 +337,7 @@ export default function Vacancy() {
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Market Rent (KSh)</label>
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Market Rent (USh)</label>
                     <input 
                       name="marketRent"
                       type="number"

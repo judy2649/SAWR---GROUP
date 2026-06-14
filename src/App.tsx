@@ -13,6 +13,7 @@ import Leases from "@/src/pages/Leases";
 import Vacancy from "@/src/pages/Vacancy";
 import Expenses from "@/src/pages/Expenses";
 import Auth from "@/src/pages/Auth";
+import MyBookings from "@/src/pages/MyBookings";
 
 export default function App() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -74,6 +75,7 @@ export default function App() {
             <Route path="/maintenance" element={<Maintenance />} />
             <Route path="/communications" element={<Communications />} />
             <Route path="/reports" element={<Reports />} />
+            <Route path="/my-bookings" element={<MyBookings />} />
           </Routes>
         </main>
       </div>

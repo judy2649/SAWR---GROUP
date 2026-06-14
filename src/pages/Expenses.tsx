@@ -113,9 +113,9 @@ export default function Expenses() {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         {[
-          { label: "Operating Expenses (MTD)", value: `KSh ${totalAll.toLocaleString()}`, trend: "Fully dynamic", color: "blue", icon: CreditCard },
-          { label: "Approved / Paid (YTD)", value: `KSh ${totalPaid.toLocaleString()}`, trend: "Settled invoices", color: "gold", icon: Receipt },
-          { label: "Unpaid / Pending", value: `KSh ${totalPending.toLocaleString()}`, trend: `${expenses.filter(e => e.status !== "Paid").length} Actions Pending`, color: "orange", icon: Calendar },
+          { label: "Operating Expenses (MTD)", value: `USh ${totalAll.toLocaleString()}`, trend: "Fully dynamic", color: "blue", icon: CreditCard },
+          { label: "Approved / Paid (YTD)", value: `USh ${totalPaid.toLocaleString()}`, trend: "Settled invoices", color: "gold", icon: Receipt },
+          { label: "Unpaid / Pending", value: `USh ${totalPending.toLocaleString()}`, trend: `${expenses.filter(e => e.status !== "Paid").length} Actions Pending`, color: "orange", icon: Calendar },
         ].map((item, i) => (
           <div key={i} className="glass p-6 rounded-2xl bg-white shadow-lg border border-slate-200 flex items-center gap-6 group hover:border-sawr-gold/30 transition-all">
              <div className={cn(
@@ -200,7 +200,7 @@ export default function Expenses() {
                             {exp.property}
                           </div>
                         </td>
-                        <td className="px-6 py-4 font-bold text-slate-900 text-sm">KSh {exp.amount.toLocaleString()}</td>
+                        <td className="px-6 py-4 font-bold text-slate-900 text-sm">USh {exp.amount.toLocaleString()}</td>
                         <td className="px-6 py-4 text-xs text-slate-500 font-medium">{exp.date}</td>
                         <td className="px-6 py-4">
                           <span className={cn(
@@ -338,7 +338,7 @@ export default function Expenses() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1">
-                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Amount Paid/Owed (KSh)</label>
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Amount Paid/Owed (USh)</label>
                     <input 
                       name="amount"
                       type="number" 

@@ -25,8 +25,15 @@ import { StatCard } from "@/src/components/StatCard";
 import { motion } from "motion/react";
 import { formatCurrency, cn } from "@/src/lib/utils";
 import { StorageEngine, Property, Tenant, Lease, VacancyUnit } from "@/src/lib/storage";
+import ClientDashboard from "@/src/components/ClientDashboard";
 
 export default function Dashboard() {
+  const role = localStorage.getItem("sawr_role") || "client";
+
+  if (role === "client") {
+    return <ClientDashboard />;
+  }
+
   const [properties, setProperties] = useState<Property[]>([]);
   const [tenants, setTenants] = useState<Tenant[]>([]);
   const [leases, setLeases] = useState<Lease[]>([]);
@@ -78,12 +85,31 @@ export default function Dashboard() {
   }));
 
   return (
-    <div className="p-8 space-y-8">
-      <div className="max-w-[1600px] mx-auto space-y-8">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-3xl font-display font-bold text-slate-900 uppercase tracking-widest">SAWR Group Operations</h2>
-            <p className="text-sawr-gold font-bold tracking-[0.2em] text-[10px] sm:text-xs mt-2 uppercase">Real Estate | Development | Investment</p>
+    <div className="p-8 space-y-8 relative min-h-screen overflow-hidden">
+      {/* Strategic SAWR Brand/Luxury Housing Wallpaper */}
+      <div className="absolute inset-0 pointer-events-none z-0">
+        <img 
+          src="/src/assets/images/luxury_housing_bg_1781437455458.jpg" 
+          alt="SAWR Operations Wallpaper" 
+          className="w-full h-full object-cover opacity-35 select-none transition-opacity duration-300"
+          referrerPolicy="no-referrer"
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-slate-50/10 via-slate-50/60 to-slate-50"></div>
+      </div>
+
+      <div className="max-w-[1600px] mx-auto space-y-8 relative z-10">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white border border-slate-200 p-6 rounded-3xl shadow-sm">
+          <div className="flex items-center gap-4">
+            <img 
+              src="/src/assets/images/sawr_logo_1781434320923.jpg" 
+              alt="SAWR GROUP" 
+              className="h-16 w-auto object-contain shrink-0"
+              referrerPolicy="no-referrer"
+            />
+            <div>
+              <h2 className="text-2xl sm:text-3xl font-display font-bold text-slate-900 uppercase tracking-widest">SAWR Group Operations</h2>
+              <p className="text-sawr-gold font-bold tracking-[0.2em] text-[10px] sm:text-xs mt-1.5 uppercase">Real Estate | Development | Investment</p>
+            </div>
           </div>
         </div>
 
@@ -158,7 +184,7 @@ export default function Dashboard() {
                               <p className="font-bold">{u.unit}</p>
                               <p className="text-sawr-black/60">{u.property}</p>
                           </div>
-                          <span className="text-[10px] font-bold">KSh {(u.marketRent/1000).toFixed(0)}k</span>
+                          <span className="text-[10px] font-bold">USh {(u.marketRent/1000).toFixed(0)}k</span>
                       </div>
                   ))}
               </div>
@@ -189,7 +215,7 @@ export default function Dashboard() {
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke="#00000008" vertical={false} />
                     <XAxis dataKey="name" stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} />
-                    <YAxis stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `KSh ${value/1000}k`} />
+                    <YAxis stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `USh ${value/1000}k`} />
                     <Tooltip 
                       contentStyle={{ backgroundColor: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px" }}
                     />

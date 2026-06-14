@@ -193,7 +193,7 @@ export default function Tenants() {
                     <p className="text-xs text-slate-500">{tenant.unit}</p>
                   </td>
                   <td className="px-6 py-4 font-bold text-slate-900 text-sm">
-                    KSh {tenant.rent.toLocaleString()}
+                    USh {tenant.rent.toLocaleString()}
                   </td>
                   <td className="px-6 py-4">
                     <span className={cn(
@@ -335,7 +335,7 @@ export default function Tenants() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1">
-                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Rent Amount (KSh)</label>
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Rent Amount (USh)</label>
                     <input 
                       name="rent"
                       type="number"

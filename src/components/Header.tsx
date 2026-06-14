@@ -36,8 +36,12 @@ export function Header({ onMenuToggle }: { onMenuToggle: () => void }) {
 
         <div className="flex items-center gap-3 cursor-pointer group">
           <div className="text-right hidden sm:block">
-            <p className="text-sm font-bold text-slate-900 uppercase tracking-wide group-hover:text-sawr-gold transition-colors">Judith Oyoo</p>
-            <p className="text-[10px] text-sawr-gold font-bold tracking-widest uppercase">Group Administrator</p>
+            <p className="text-sm font-bold text-slate-900 uppercase tracking-wide group-hover:text-sawr-gold transition-colors">
+              {localStorage.getItem("sawr_name") || "Judith Oyoo"}
+            </p>
+            <p className="text-[10px] text-sawr-gold font-bold tracking-widest uppercase">
+              {localStorage.getItem("sawr_role") === "admin" ? "Group Administrator" : "Premium Client Member"}
+            </p>
           </div>
           <div className="w-10 h-10 rounded-full bg-sawr-black border border-sawr-gold flex items-center justify-center overflow-hidden shadow-lg group-hover:shadow-sawr-gold/20 transition-all">
             <User className="text-sawr-gold" size={20} />

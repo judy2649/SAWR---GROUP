@@ -61,7 +61,7 @@ export default function Reports() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {[
           { label: "Portfolio Yield", value: "8.4%", icon: BarChart3 },
-          { label: "Avg. Rent Rate", value: "KSh 52.4k", icon: FileText },
+          { label: "Avg. Rent Rate", value: "USh 52.4k", icon: FileText },
           { label: "Growth Rate", value: "+12.2%", icon: TrendingUp },
           { label: "Retention", value: "94.8%", icon: Layers },
         ].map((stat, i) => (

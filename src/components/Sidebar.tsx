@@ -5,7 +5,6 @@ import {
   Users, 
   Wallet, 
   Wrench, 
-  Settings, 
   LogOut,
   ChevronRight,
   MessageSquare,
@@ -13,12 +12,13 @@ import {
   ScrollText,
   Key,
   BadgeCent,
-  X
+  X,
+  ShoppingBag
 } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { cn } from "@/src/lib/utils";
 
-const menuItems = [
+const adminMenuItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/" },
   { icon: Building2, label: "Properties", path: "/properties" },
   { icon: Key, label: "Vacancy", path: "/vacancy" },
@@ -31,7 +31,16 @@ const menuItems = [
   { icon: BarChart3, label: "Reports", path: "/reports" },
 ];
 
+const clientMenuItems = [
+  { icon: LayoutDashboard, label: "Client Portal", path: "/" },
+  { icon: Building2, label: "Browse Assets", path: "/properties" },
+  { icon: ShoppingBag, label: "My Bookings", path: "/my-bookings" },
+];
+
 export function Sidebar({ isOpen, setIsOpen }: { isOpen: boolean, setIsOpen: (val: boolean) => void }) {
+  const role = localStorage.getItem("sawr_role") || "client";
+  const menuItems = role === "admin" ? adminMenuItems : clientMenuItems;
+
   return (
     <aside className={cn(
       "fixed inset-y-0 left-0 z-50 w-64 border-r border-slate-200 bg-white shadow-2xl lg:shadow-none flex flex-col transition-transform duration-300 lg:relative lg:translate-x-0",

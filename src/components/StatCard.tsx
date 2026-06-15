@@ -21,32 +21,32 @@ export function StatCard({ title, value, change, icon: Icon, trend, color, theme
 
   return (
     <motion.div 
-      whileHover={{ y: -5 }}
+      whileHover={{ y: -2 }}
       className={cn(
-        "p-6 rounded-2xl flex flex-col gap-4 relative overflow-hidden group transition-all bg-white border border-slate-200 shadow-sm hover:shadow-md",
+        "p-4 rounded-2xl flex flex-col gap-3 relative overflow-hidden group transition-all bg-white border border-slate-200 shadow-sm hover:shadow-md",
       )}
     >
       <div className="flex items-center justify-between">
-        <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center border", colorMap[color])}>
-          <Icon size={24} />
+        <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center border", colorMap[color])}>
+          <Icon size={20} />
         </div>
         <div className={cn(
-          "text-xs font-bold px-2.5 py-1 rounded-full",
-          trend === "up" ? "bg-emerald-500/10 text-emerald-500" : 
-          trend === "down" ? "bg-red-500/10 text-red-500" :
-          "bg-slate-500/10 text-slate-500"
+          "text-[10px] font-bold px-2 py-1 rounded-md",
+          trend === "up" ? "bg-emerald-50 text-emerald-600 border border-emerald-100" : 
+          trend === "down" ? "bg-red-50 text-red-600 border border-red-100" :
+          "bg-slate-50 text-slate-600 border border-slate-100"
         )}>
           {change}
         </div>
       </div>
       
       <div>
-        <h3 className="text-sm font-medium text-slate-500">{title}</h3>
-        <p className="text-2xl font-bold mt-1 text-slate-900">{value}</p>
+        <h3 className="text-xs font-medium text-slate-500 uppercase tracking-wide">{title}</h3>
+        <p className="text-xl font-bold mt-1 text-slate-900">{value}</p>
       </div>
 
       <div className={cn(
-        "absolute -bottom-6 -right-6 w-24 h-24 blur-3xl opacity-0 group-hover:opacity-10 transition-opacity duration-500",
+        "absolute -bottom-6 -right-6 w-20 h-20 blur-3xl opacity-0 group-hover:opacity-10 transition-opacity duration-500",
         color === "blue" ? "bg-sawr-blue" : color === "gold" ? "bg-sawr-gold" : "bg-sawr-orange"
       )}></div>
     </motion.div>

@@ -17,6 +17,8 @@ export interface Property {
   createdAt: string;
   totalUnits: number;
   vacantUnits: number;
+  buyPrice?: number;
+  rentPrice?: number;
 }
 
 export interface Unit {

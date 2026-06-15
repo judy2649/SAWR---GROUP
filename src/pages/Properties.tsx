@@ -49,6 +49,8 @@ export default function Properties() {
   const [paySuccess, setPaySuccess] = useState(false);
   const [mpesaRef, setMpesaRef] = useState("");
 
+  const [editingPropertyId, setEditingPropertyId] = useState<string | null>(null);
+
   // Form State for Admin
   const [formData, setFormData] = useState({
     name: "",
@@ -56,7 +58,10 @@ export default function Properties() {
     type: "Residential",
     units: "",
     occupancy: "100",
-    revenue: ""
+    revenue: "",
+    image: "",
+    rentPrice: "",
+    buyPrice: ""
   });
 
   useEffect(() => {
@@ -74,33 +79,74 @@ export default function Properties() {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleAddProperty = (e: React.FormEvent) => {
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        if (event.target?.result) {
+          setFormData(prev => ({ ...prev, image: event.target!.result as string }));
+        }
+      };
+      reader.readAsDataURL(e.target.files[0]);
+    }
+  };
+
+  const handleSaveProperty = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name || !formData.address) return;
 
-    const randomImgIdx = Math.floor(Math.random() * buildingImages.length);
-    const newProperty: Property = {
-      id: `P-${Date.now()}`,
-      name: formData.name,
-      address: formData.address,
-      type: formData.type,
-      units: Number(formData.units) || 1,
-      occupancy: Number(formData.occupancy) || 100,
-      revenue: Number(formData.revenue) || 0,
-      image: buildingImages[randomImgIdx]
-    };
+    if (editingPropertyId) {
+      const updatedProperties = properties.map(p => {
+        if (p.id === editingPropertyId) {
+          return {
+            ...p,
+            name: formData.name,
+            address: formData.address,
+            type: formData.type,
+            units: Number(formData.units) || p.units,
+            occupancy: Number(formData.occupancy) || p.occupancy,
+            revenue: Number(formData.revenue) || p.revenue,
+            image: formData.image || p.image,
+            rentPrice: formData.rentPrice ? Number(formData.rentPrice) : p.rentPrice,
+            buyPrice: formData.buyPrice ? Number(formData.buyPrice) : p.buyPrice
+          };
+        }
+        return p;
+      });
+      StorageEngine.saveProperties(updatedProperties);
+      setProperties(updatedProperties);
+    } else {
+      const randomImgIdx = Math.floor(Math.random() * buildingImages.length);
+      const newProperty: Property = {
+        id: `P-${Date.now()}`,
+        name: formData.name,
+        address: formData.address,
+        type: formData.type,
+        units: Number(formData.units) || 1,
+        occupancy: Number(formData.occupancy) || 100,
+        revenue: Number(formData.revenue) || 0,
+        image: formData.image || buildingImages[randomImgIdx],
+        rentPrice: formData.rentPrice ? Number(formData.rentPrice) : undefined,
+        buyPrice: formData.buyPrice ? Number(formData.buyPrice) : undefined
+      };
 
-    const updated = [newProperty, ...properties];
-    StorageEngine.saveProperties(updated);
-    setProperties(updated);
+      const updated = [newProperty, ...properties];
+      StorageEngine.saveProperties(updated);
+      setProperties(updated);
+    }
+
     setIsModalOpen(false);
+    setEditingPropertyId(null);
     setFormData({
       name: "",
       address: "",
       type: "Residential",
       units: "",
       occupancy: "100",
-      revenue: ""
+      revenue: "",
+      image: "",
+      rentPrice: "",
+      buyPrice: ""
     });
   };
 
@@ -120,8 +166,8 @@ export default function Properties() {
       
       // Calculate realistic amount based on selection
       const amountPaid = payType === "Buy" 
-        ? (selectedProperty.type === "Commercial" ? 22000000 : 12500000)
-        : (selectedProperty.type === "Commercial" ? 120000 : 55000);
+        ? (selectedProperty.buyPrice || (selectedProperty.type === "Commercial" ? 22000000 : 12500000))
+        : (selectedProperty.rentPrice || (selectedProperty.type === "Commercial" ? 120000 : 55000));
       
       // 1. Save Booking object in localStorage lists
       const currentBookings = JSON.parse(localStorage.getItem("sawr_bookings") || "[]");
@@ -309,13 +355,38 @@ export default function Properties() {
                 <div>
                   <p className="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Est. Valuation</p>
                   <p className="text-sm font-bold text-slate-900">
-                    {property.type === "Commercial" ? "USh 22.0M" : "USh 12.5M"}
+                    {formatCurrency(property.buyPrice || (property.type === "Commercial" ? 22000000 : 12500000))}
                   </p>
                 </div>
-                <button className="flex items-center gap-1 bg-sawr-gold hover:bg-gold-600 text-sawr-black text-[10px] font-bold uppercase px-3 py-2 rounded-lg shadow transition-all">
-                  <span>View & Pay</span>
-                  <ArrowRight size={12} />
-                </button>
+                <div className="flex gap-2">
+                  {role === "admin" && (
+                    <button 
+                      onClick={(e) => {
+                         e.stopPropagation();
+                         setFormData({
+                            name: property.name,
+                            address: property.address,
+                            type: property.type,
+                            units: property.units.toString(),
+                            occupancy: property.occupancy.toString(),
+                            revenue: property.revenue.toString(),
+                            image: property.image,
+                            rentPrice: property.rentPrice ? property.rentPrice.toString() : "",
+                            buyPrice: property.buyPrice ? property.buyPrice.toString() : ""
+                         });
+                         setIsModalOpen(true);
+                         setEditingPropertyId(property.id);
+                      }}
+                      className="flex items-center gap-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] font-bold uppercase px-3 py-2 rounded-lg shadow-sm transition-all"
+                    >
+                       Edit
+                    </button>
+                  )}
+                  <button className="flex items-center gap-1 bg-sawr-gold hover:bg-gold-600 text-sawr-black text-[10px] font-bold uppercase px-3 py-2 rounded-lg shadow transition-all">
+                    <span>View & Pay</span>
+                    <ArrowRight size={12} />
+                  </button>
+                </div>
               </div>
             </motion.div>
           ))}
@@ -381,13 +452,13 @@ export default function Properties() {
                       <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-100 text-center">
                         <span className="text-[9px] text-slate-400 font-bold uppercase tracking-widest block">Monthly Rent</span>
                         <span className="text-sm font-bold text-slate-900 block mt-1">
-                          {selectedProperty.type === "Commercial" ? "USh 120,000" : "USh 55,000"}
+                          {formatCurrency(selectedProperty.rentPrice || (selectedProperty.type === "Commercial" ? 120000 : 55000))}
                         </span>
                       </div>
                       <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-100 text-center">
                         <span className="text-[9px] text-slate-400 font-bold uppercase tracking-widest block">Acquisition Price</span>
                         <span className="text-sm font-bold text-slate-900 block mt-1">
-                          {selectedProperty.type === "Commercial" ? "USh 22,000,000" : "USh 12,500,000"}
+                          {formatCurrency(selectedProperty.buyPrice || (selectedProperty.type === "Commercial" ? 22000000 : 12500000))}
                         </span>
                       </div>
                       <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-100 text-center">
@@ -714,7 +785,7 @@ export default function Properties() {
               <div className="p-6 border-b border-slate-100 justify-between flex items-center bg-slate-50">
                 <div className="flex items-center gap-2">
                   <Sparkles size={18} className="text-sawr-gold" />
-                  <h3 className="text-xl font-bold text-slate-900">Add Property Asset</h3>
+                  <h3 className="text-xl font-bold text-slate-900">{editingPropertyId ? "Edit Property Asset" : "Add Property Asset"}</h3>
                 </div>
                 <button 
                   onClick={() => setIsModalOpen(false)}
@@ -724,7 +795,7 @@ export default function Properties() {
                 </button>
               </div>
 
-              <form onSubmit={handleAddProperty} className="p-6 space-y-4">
+              <form onSubmit={handleSaveProperty} className="p-6 space-y-4">
                 <div className="space-y-1">
                   <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Property Name</label>
                   <input 
@@ -797,7 +868,7 @@ export default function Properties() {
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Monthly Revenue (USh)</label>
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Monthly Revenue</label>
                     <input 
                       name="revenue"
                       type="number"
@@ -810,10 +881,58 @@ export default function Properties() {
                   </div>
                 </div>
 
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Rent Price</label>
+                    <input 
+                      name="rentPrice"
+                      type="number"
+                      value={formData.rentPrice}
+                      onChange={handleInputChange}
+                      placeholder="e.g. 55000"
+                      className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-sawr-gold text-slate-900"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Buy Price</label>
+                    <input 
+                      name="buyPrice"
+                      type="number"
+                      value={formData.buyPrice}
+                      onChange={handleInputChange}
+                      placeholder="e.g. 12500000"
+                      className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-sawr-gold text-slate-900"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Property Image</label>
+                  <input 
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-sawr-gold text-slate-900 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-sawr-gold file:text-sawr-black hover:file:bg-gold-600"
+                  />
+                  {formData.image && (
+                    <div className="mt-2 h-20 w-32 rounded-lg overflow-hidden border border-slate-200">
+                      <img src={formData.image} alt="Preview" className="w-full h-full object-cover" />
+                    </div>
+                  )}
+                </div>
+
                 <div className="pt-4 border-t border-slate-100 flex gap-3 justify-end">
                   <button 
                     type="button"
-                    onClick={() => setIsModalOpen(false)}
+                    onClick={() => {
+                      setIsModalOpen(false);
+                      setEditingPropertyId(null);
+                      setFormData({
+                        name: "", address: "", type: "Residential", units: "",
+                        occupancy: "100", revenue: "", image: "", rentPrice: "", buyPrice: ""
+                      });
+                    }}
                     className="px-4 py-2 border border-slate-200 hover:bg-slate-50 text-slate-500 rounded-xl text-xs font-bold uppercase transition-all"
                   >
                     Cancel
@@ -822,7 +941,7 @@ export default function Properties() {
                     type="submit"
                     className="px-4 py-2 bg-sawr-gold hover:bg-gold-600 text-sawr-black rounded-xl text-xs font-bold uppercase transition-all shadow-md"
                   >
-                    Add Asset
+                    {editingPropertyId ? "Save Changes" : "Add Asset"}
                   </button>
                 </div>
               </form>

@@ -7,6 +7,8 @@ export interface Property {
   occupancy: number; // percentage
   revenue: number;
   image: string;
+  rentPrice?: number;
+  buyPrice?: number;
 }
 
 export interface Tenant {

@@ -14,7 +14,9 @@ import {
   Info,
   ShieldCheck,
   Smartphone,
-  ChevronRight
+  ChevronRight,
+  Trash2,
+  Edit2
 } from "lucide-react";
 import { formatCurrency, cn } from "@/src/lib/utils";
 import { motion, AnimatePresence } from "motion/react";
@@ -148,6 +150,16 @@ export default function Properties() {
       rentPrice: "",
       buyPrice: ""
     });
+  };
+
+  const handleDeleteProperty = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (window.confirm("Are you sure you want to delete this property?")) {
+      const updated = properties.filter(p => p.id !== id);
+      StorageEngine.saveProperties(updated);
+      setProperties(updated);
+      window.dispatchEvent(new Event("sawr_data_update"));
+    }
   };
 
   const handleCompletePayment = (e: React.FormEvent) => {
@@ -298,7 +310,7 @@ export default function Properties() {
           )}
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {filteredProperties.map((property, index) => (
             <motion.div
               key={property.id}
@@ -306,43 +318,43 @@ export default function Properties() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.05 }}
               onClick={() => setSelectedProperty(property)}
-              className="group relative bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm hover:shadow-xl hover:border-sawr-gold/50 transition-all cursor-pointer flex flex-col justify-between"
+              className="group relative bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl hover:border-sawr-gold/50 transition-all cursor-pointer flex flex-col justify-between"
             >
               <div>
-                <div className="h-48 overflow-hidden relative">
+                <div className="h-40 overflow-hidden relative">
                   <img 
                     src={property.image} 
                     alt={property.name} 
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-90"
                     referrerPolicy="no-referrer"
                   />
-                  <div className="absolute top-4 left-4 bg-white/95 backdrop-blur-md px-3 py-1 rounded-lg text-[10px] font-bold text-sawr-black uppercase tracking-widest border border-slate-200 shadow-sm">
+                  <div className="absolute top-3 left-3 bg-white/95 backdrop-blur-md px-2.5 py-1 rounded-md text-[9px] font-bold text-sawr-black uppercase tracking-widest border border-slate-200 shadow-sm">
                     {property.type}
                   </div>
                 </div>
 
-                <div className="p-6 space-y-4">
+                <div className="p-5 space-y-4">
                   <div>
-                    <h3 className="text-xl font-bold text-slate-900 group-hover:text-sawr-blue transition-colors">{property.name}</h3>
-                    <div className="flex items-center gap-1.5 text-slate-500 text-sm mt-1">
-                      <MapPin size={14} className="text-sawr-gold" />
-                      <span>{property.address}</span>
+                    <h3 className="text-lg font-bold text-slate-900 group-hover:text-sawr-blue transition-colors line-clamp-1">{property.name}</h3>
+                    <div className="flex items-center gap-1.5 text-slate-500 text-xs mt-1">
+                      <MapPin size={12} className="text-sawr-gold shrink-0" />
+                      <span className="truncate">{property.address}</span>
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100">
-                      <p className="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Units</p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <Home size={14} className="text-sawr-gold" />
-                        <span className="text-slate-900 font-bold">{property.units}</span>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100 flex flex-col items-center justify-center text-center">
+                      <p className="text-[9px] text-slate-400 uppercase tracking-widest font-bold mb-1">Units</p>
+                      <div className="flex items-center gap-1.5">
+                        <Home size={12} className="text-sawr-gold" />
+                        <span className="text-slate-900 font-bold text-sm">{property.units}</span>
                       </div>
                     </div>
-                    <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100">
-                      <p className="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Occupancy</p>
-                      <div className="mt-1">
+                    <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100 flex flex-col items-center justify-center text-center">
+                      <p className="text-[9px] text-slate-400 uppercase tracking-widest font-bold mb-1">Occupied</p>
+                      <div className="flex items-center">
                         <span className={cn(
-                          "font-bold",
+                          "font-bold text-sm",
                           property.occupancy >= 90 ? "text-emerald-600" : "text-sawr-gold"
                         )}>{property.occupancy}%</span>
                       </div>
@@ -351,39 +363,49 @@ export default function Properties() {
                 </div>
               </div>
 
-              <div className="px-6 pb-6 pt-4 border-t border-slate-100 flex items-center justify-between mt-auto">
+              <div className="px-5 pb-5 pt-3 border-t border-slate-100 flex items-center justify-between mt-auto">
                 <div>
-                  <p className="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Est. Valuation</p>
+                  <p className="text-[9px] text-slate-400 uppercase tracking-widest font-bold">Est. Valuation</p>
                   <p className="text-sm font-bold text-slate-900">
                     {formatCurrency(property.buyPrice || (property.type === "Commercial" ? 22000000 : 12500000))}
                   </p>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex items-center gap-2">
                   {role === "admin" && (
-                    <button 
-                      onClick={(e) => {
-                         e.stopPropagation();
-                         setFormData({
-                            name: property.name,
-                            address: property.address,
-                            type: property.type,
-                            units: property.units.toString(),
-                            occupancy: property.occupancy.toString(),
-                            revenue: property.revenue.toString(),
-                            image: property.image,
-                            rentPrice: property.rentPrice ? property.rentPrice.toString() : "",
-                            buyPrice: property.buyPrice ? property.buyPrice.toString() : ""
-                         });
-                         setIsModalOpen(true);
-                         setEditingPropertyId(property.id);
-                      }}
-                      className="flex items-center gap-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] font-bold uppercase px-3 py-2 rounded-lg shadow-sm transition-all"
-                    >
-                       Edit
-                    </button>
+                    <div className="flex items-center gap-1">
+                      <button 
+                        onClick={(e) => {
+                           e.stopPropagation();
+                           setFormData({
+                              name: property.name,
+                              address: property.address,
+                              type: property.type,
+                              units: property.units.toString(),
+                              occupancy: property.occupancy.toString(),
+                              revenue: property.revenue.toString(),
+                              image: property.image,
+                              rentPrice: property.rentPrice ? property.rentPrice.toString() : "",
+                              buyPrice: property.buyPrice ? property.buyPrice.toString() : ""
+                           });
+                           setIsModalOpen(true);
+                           setEditingPropertyId(property.id);
+                        }}
+                        className="flex items-center justify-center bg-slate-100 hover:bg-slate-200 text-slate-700 w-8 h-8 rounded-lg shadow-sm transition-all"
+                        title="Edit Asset"
+                      >
+                         <Edit2 size={14} />
+                      </button>
+                      <button 
+                        onClick={(e) => handleDeleteProperty(property.id, e)}
+                        className="flex items-center justify-center bg-red-50 hover:bg-red-100 text-red-600 w-8 h-8 rounded-lg shadow-sm transition-all"
+                        title="Delete Asset"
+                      >
+                         <Trash2 size={14} />
+                      </button>
+                    </div>
                   )}
-                  <button className="flex items-center gap-1 bg-sawr-gold hover:bg-gold-600 text-sawr-black text-[10px] font-bold uppercase px-3 py-2 rounded-lg shadow transition-all">
-                    <span>View & Pay</span>
+                  <button className="flex items-center justify-center gap-1.5 bg-sawr-gold hover:bg-gold-600 text-sawr-black text-[10px] font-bold uppercase px-3 py-2 rounded-lg shadow-sm transition-all">
+                    <span>View</span>
                     <ArrowRight size={12} />
                   </button>
                 </div>

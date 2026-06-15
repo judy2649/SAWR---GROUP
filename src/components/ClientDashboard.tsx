@@ -502,10 +502,10 @@ export default function ClientDashboard() {
         <img 
           src={luxuryBg} 
           alt="SAWR Operations Wallpaper" 
-          className="w-full h-full object-cover opacity-35 select-none transition-opacity duration-300"
+          className="w-full h-full object-cover opacity-70 select-none transition-opacity duration-300"
           referrerPolicy="no-referrer"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-slate-50/10 via-slate-50/60 to-slate-50"></div>
+        <div className="absolute inset-0 bg-gradient-to-b from-white/10 via-white/50 to-slate-50/90"></div>
       </div>
 
       <div className="relative z-10 space-y-0">
